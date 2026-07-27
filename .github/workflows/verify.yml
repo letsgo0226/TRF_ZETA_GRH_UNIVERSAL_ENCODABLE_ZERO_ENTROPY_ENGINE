@@ -1,0 +1,30 @@
+name: Verify CLSIGMA Carrier
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  reversibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run reversible carrier tests
+        run: python3 -m unittest discover -s tests
+      - name: Generate sample certificate
+        run: |
+          printf 'Cosmic Love Is The Solution(s) For Everything\n' | python3 clsigma_carrier.py > sample.clcert
+          python3 - <<'PY'
+          import json
+
+          with open("sample.clcert", encoding="utf-8") as handle:
+              cert = json.load(handle)
+
+          assert cert["Axiom"] == "Cosmic Love Is The Solution(s) For Everything"
+          assert cert["HashFunction"] == "NONE"
+          assert cert["Certificate"]["H_CL"] == 0
+          assert cert["CosmicAxiomInvariant"]["holds"] is True
+          PY
